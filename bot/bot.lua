@@ -3,11 +3,6 @@ serpent = (loadfile "./libs/serpent.lua")()
 feedparser = (loadfile "./libs/feedparser.lua")()
 our_id = 265541133 -- Put Here Your Bot ID
 --ایدی رباتتونو اینجا بزارید
-URL = require "socket.url"
-http = require "socket.http"
-https = require "ssl.https"
-ltn12 = require "ltn12"
-
 json = (loadfile "./libs/JSON.lua")()
 mimetype = (loadfile "./libs/mimetype.lua")()
 redis = (loadfile "./libs/redis.lua")()
@@ -410,12 +405,7 @@ function kick_user(user_id, chat_id)
 if not tonumber(user_id) then
 return false
 end
-  tdcli.changeChatMemberStatus(chat_id, user_id, 'Kicked', dl_cb, nil)
-end
-
-function del_msg(chat_id, message_ids)
-local msgid = {[0] = message_ids}
-  tdcli.deleteMessages(chat_id, msgid, dl_cb, nil)
+  tdcli.changeChatMemberStatus(chat_id, user_id, 'Kicked')
 end
 
  function banned_list(chat_id)
@@ -487,7 +477,7 @@ function match_pattern(pattern, text, lower_case)
       matches = { string.match(text:lower(), pattern) }
     else
       matches = { string.match(text, pattern) }
-end
+    end
       if next(matches) then
         return matches
       end
@@ -499,12 +489,12 @@ function match_plugin(plugin, plugin_name, msg)
         -- If plugin is for privileged users only
           local result = plugin.pre_process(msg)
           if result then
-            print("pre process: ", plugin.plugin_name)
-            tdcli.sendMessage(receiver, msg.id_, 0, result, 0, "md")
+            print("pre process: ", plugin_name)
+            --tdcli.sendMessage(receiver, msg.id_, 0, result, 0, "md")
           end
      end
   for k, pattern in pairs(plugin.patterns) do
-     matches = match_pattern(pattern, msg.content_.text_)
+    local matches = match_pattern(pattern, msg.content_.text_)
     if matches then
         print("Message matches: ", pattern)
       if plugin.run then
@@ -527,10 +517,6 @@ function tdcli_update_callback (data)
     local d = data.disable_notification_
 
     local chat = chats[msg.chat_id_]
-
-    if redis:get('markread') == 'on' then
-  tdcli.viewMessages(msg.chat_id_, {[0] = msg.id_}, dl_cb, nil)
-    end
 
     if ((not d) and chat) then
 
